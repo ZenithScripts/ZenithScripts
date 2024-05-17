@@ -1,41 +1,33 @@
-# Compiled Lua sources
-luac.out
+print("ESP PF Initialized.")
+enemyteam = game.Workspace.Players:GetChildren()[1]
+friendlyteam = game.Workspace.Players:GetChildren()[2]
+while wait(0.1) do
+    for _,v in enemyteam:GetDescendants() do
+        if v.ClassName == "Model" then
+            if v:FindFirstChild("Highlight") then
 
-# luarocks build files
-*.src.rock
-*.zip
-*.tar.gz
+            else
+            local h = Instance.new("Highlight",v)
+            h.FillColor = Color3.new(1,0,0)
+            h.FillTransparency = 0.4
+            print(string.format("Highlighted %s",v.Name))
 
-# Object files
-*.o
-*.os
-*.ko
-*.obj
-*.elf
+            end
 
-# Precompiled Headers
-*.gch
-*.pch
+        end
+    end
+    for _,v in friendlyteam:GetDescendants() do
+        if v.ClassName == "Model" then
+            if v:FindFirstChild("Highlight") then
 
-# Libraries
-*.lib
-*.a
-*.la
-*.lo
-*.def
-*.exp
+            else
+            local h = Instance.new("Highlight",v)
+            h.FillColor = Color3.new(0.227451, 1, 0.054902)
+            h.FillTransparency = 0.8
+            print(string.format("Highlighted %s",v.Name))
 
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
+            end
 
-# Executables
-*.exe
-*.out
-*.app
-*.i*86
-*.x86_64
-*.hex
-
+        end
+    end
+end
