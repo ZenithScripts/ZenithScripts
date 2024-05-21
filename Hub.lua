@@ -21,35 +21,28 @@ local Tab3 = Window:MakeTab({
 })
 
 Tab1:AddButton({
-    Name = "Hub",
+    Name = "Hub PF22",
     Callback = function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/dysyfsd/My/main/ScriptHub.lua"))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/dysyfsd/My/main/PhantomForces.lua"))()
     end    
 })
 
 Tab1:AddButton({
-    Name = "FullBright Aperta o L",
+    Name = "FullBright aperta o L",
     Callback = function()
         loadstring(game:HttpGet("https://pastebin.com/raw/XbYsXH87"))()
     end    
 })
 
 Tab2:AddButton({
-    Name = "ESP",
-    Callback = function()
-        loadstring(game:HttpGet("https://pastebin.com/raw/YbLrHQDB"))()
-    end    
-})
-
-Tab2:AddButton({
-    Name = "FullBright Aperte o L",
+    Name = "ESP AR2",
     Callback = function()
         loadstring(game:HttpGet("https://pastebin.com/raw/YbLrHQDB"))()
     end    
 })
 
 Tab3:AddButton({
-    Name = "Hub",
+    Name = "Hub CB:RO",
     Callback = function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/fliskScript/jaran.vip/main/free.lua"))()
     end    
