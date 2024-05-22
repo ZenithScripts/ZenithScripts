@@ -1,7 +1,7 @@
 
 
 local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
-local Window = OrionLib:MakeWindow({Name = "GuiHack", HidePremium = false, SaveConfig = true, ConfigFolder = "OrionTest"})
+local Window = OrionLib:MakeWindow({Name = "GuiHack E DOSS É Viado 🌈", HidePremium = false, SaveConfig = true, ConfigFolder = "OrionTest"})
 
 --// Defined
 
