@@ -1,7 +1,7 @@
 
 
 local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
-local Window = OrionLib:MakeWindow({Name = "GuiHack E DOSS É Viado 🌈", HidePremium = false, SaveConfig = true, ConfigFolder = "OrionTest"})
+local Window = OrionLib:MakeWindow({Name = "PhantomForces", HidePremium = false, SaveConfig = true, ConfigFolder = "OrionTest"})
 
 --// Defined
 
@@ -117,7 +117,7 @@ do --// Properties & Rest
         TextLabel.Position = UDim2.new(0, 0, 0.0857142881, 0)
         TextLabel.Size = UDim2.new(1, 0, 0.914285719, 0)
         TextLabel.Font = Enum.Font.RobotoMono
-        TextLabel.Text = "GuiHack | Roludao"
+        TextLabel.Text = "Fais u Eli"
         TextLabel.TextColor3 = Color3.fromRGB(247, 247, 247)
         TextLabel.TextSize = 12.000
         TextLabel.TextWrapped = true
