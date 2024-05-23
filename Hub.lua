@@ -41,6 +41,13 @@ Tab2:AddButton({
     end    
 })
 
+Tab2:AddButton({
+    Name = "FullBight (L Key)",
+    Callback = function()
+        loadstring(game:HttpGet("https://pastebin.com/raw/SRAgYGRz"))()
+    end    
+})
+
 Tab3:AddButton({
     Name = "Hub CB:RO",
     Callback = function()
