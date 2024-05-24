@@ -27,13 +27,6 @@ Tab1:AddButton({
     end    
 })
 
-Tab1:AddButton({
-    Name = "FullBright PF2 (L key)",
-    Callback = function()
-        loadstring(game:HttpGet("https://pastebin.com/raw/XbYsXH87"))()
-    end    
-})
-
 Tab2:AddButton({
     Name = "ESP AR2",
     Callback = function()
