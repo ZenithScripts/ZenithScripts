@@ -1,46 +1,99 @@
 
 
-local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
-local Window = OrionLib:MakeWindow({Name = "PhantomForces", HidePremium = false, SaveConfig = true, ConfigFolder = "OrionTest"})
+local repo = 'https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/'
+
+local Library = loadstring(game:HttpGet(repo .. 'Library.lua'))()
+local ThemeManager = loadstring(game:HttpGet(repo .. 'addons/ThemeManager.lua'))()
+local SaveManager = loadstring(game:HttpGet(repo .. 'addons/SaveManager.lua'))()
+
+local Window = Library:CreateWindow({
+    Title = 'Guihack',
+    Center = true,
+    AutoShow = true,
+    TabPadding = 8,
+    MenuFadeTime = 0.2
+})
 
 --// Defined
 
 local Camera = workspace.CurrentCamera
 local Players = workspace.Players
-local Mouse = game.Players.LocalPlayer:GetMouse()
+local Ignore = workspace.Ignore
+local Misc = Ignore.Misc
+
+--// Roblox
+
+local Vector3New = Vector3.new
+
+--// Services
+
 local UserInputService = game:GetService("UserInputService")
+local Lighting = game:GetService("Lighting")
 
 --// Tables
 
 local Tabs = {
-    AimbotTab = Window:MakeTab({
-        Name = "Aimbot",
-    }),
-    VisualTab = Window:MakeTab({
-        Name = "Visuals",
-    }),
-    MiscTab = Window:MakeTab({
-        Name = "Misc",
-    })
+    AimbotTab = Window:AddTab('Aimbot'),
+    VisualsTab = Window:AddTab('Visuals'),
+    MiscTab = Window:AddTab('Misc'),
+    Settings = Window:AddTab('Settings'),
+}
+
+local Sections = {
+
+    --// Aimbot Tab
+
+    Aimbot = Tabs.AimbotTab:AddLeftGroupbox('Aimbot'),
+    AimbotSettings = Tabs.AimbotTab:AddRightGroupbox('Aimbot Settings'),
+    
+    --// Visuals Tab
+
+    Visuals = Tabs.VisualsTab:AddLeftGroupbox('Visuals'),
+    VisualSettings = Tabs.VisualsTab:AddRightGroupbox('Configuration'),
+
+    Grenade = Tabs.VisualsTab:AddLeftGroupbox('Grenades'),
+    Lighting = Tabs.VisualsTab:AddRightGroupbox('Lighting'),
+    Misc = Tabs.MiscTab:AddLeftGroupbox('Misc'),
+    Player = Tabs.MiscTab:AddLeftGroupbox('Player'),
 }
 
 local FeatureTable = {
     Combat = {
-        SilentAim = false,
+        SilentAim = {Enabled = false, Hitchance = 100, DummyRange = 0, DynamicFOV = false},
+        WallCheck = false,
         TeamCheck = false,
         Hitpart = 7, --// 6 = Torso, 7 = Head
     },
     Visuals = {
+
+        --// Features \\--
+
         Box = {Enabled = false, Color = Color3.fromRGB(255, 255, 255)},
-        Tracers = {Enabled = false, Color = Color3.fromRGB(255, 255, 255)},
-        Chams = {Enabled = false, FillColor = Color3.fromRGB(255, 255, 255), OutlineColor = Color3.fromRGB(255, 255, 255), VisibleOnly = false, Transparency = .5},
+        Tracers = {Enabled = false, Color = Color3.fromRGB(255, 255, 255), Origin = "Middle"},
+        Chams = {Enabled = false, FillColor = Color3.fromRGB(255, 255, 255), OutlineColor = Color3.fromRGB(255, 255, 255), VisibleOnly = false, FillTransparency = 0, OutlineTransparency = 0},
 
         TeamCheck = false,
         UseTeamColor = false, --// Team colors dont apply to chams btw
+
+        --// Other \\--
+
+        Lighting = {
+            OverrideAmbient = {Enabled = false, Color = Color3.fromRGB(255, 255, 255)},
+        },
+
+        Grenade = {
+            GrenadeESP = {Enabled = false, Color = Color3.fromRGB(255, 255, 255), Transparency = 0},
+            TrailModifier = {Enabled = false, Color = Color3.fromRGB(255, 255, 255), TrailLifetime = 0.55},
+        }
+
     },
     Misc = {
-        Bhop = true,
-        Watermark = true,
+        Player = {
+            Fly = {Enabled = false, Speed = 0},
+            Bhop = false,
+            JumpPowerModifier = {Enabled = false, Power = 50},
+            HipHeight = 0,
+        }
     },
 }
 
@@ -55,7 +108,8 @@ local Storage = {
         Chams = {},
     },
     Other = {
-        ViewportSize = Camera.ViewportSize
+        ViewportSize = Camera.ViewportSize,
+        ClosestPlayer = nil,
     },
 }
 
@@ -90,8 +144,8 @@ do --// Properties & Rest
     local TextLabel = Instance.new("TextLabel", Main)
     
     do --// Properties
-        Watermark.Enabled = FeatureTable.Misc.Watermark
-        Watermark.Name = "marca D'Agua"
+        Watermark.Enabled = false
+        Watermark.Name = "Watermark"
     
         Main.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
         Main.BorderColor3 = Color3.fromRGB(0, 0, 0)
@@ -117,7 +171,7 @@ do --// Properties & Rest
         TextLabel.Position = UDim2.new(0, 0, 0.0857142881, 0)
         TextLabel.Size = UDim2.new(1, 0, 0.914285719, 0)
         TextLabel.Font = Enum.Font.RobotoMono
-        TextLabel.Text = "Fais u Eli"
+        TextLabel.Text = "GuiHack | Fais u Eli"
         TextLabel.TextColor3 = Color3.fromRGB(247, 247, 247)
         TextLabel.TextSize = 12.000
         TextLabel.TextWrapped = true
@@ -129,151 +183,328 @@ end
 
 do --// Main
 
-    do --// Notifications
-
-        OrionLib:MakeNotification({
-            Name = "Bem-Vindo Gay",
-            Content = "Porno Gay",
-            Time = 5
-        })
-        
-    end
-
     do --// Elements
 
         do --// Aimbot Tab
 
-            Tabs.AimbotTab:AddToggle({
-                Name = "Silent Aim",
+            Sections.Aimbot:AddToggle('SilentAim', {
+                Text = 'Silent Aim',
                 Default = false,
+                Tooltip = nil,
+            
                 Callback = function(Value)
-                    FeatureTable.Combat.SilentAim = Value
-                end    
-            })
-
-            Tabs.AimbotTab:AddToggle({
-                Name = "TeamCheck",
-                Default = false,
-                Callback = function(Value)
-                    FeatureTable.Combat.TeamCheck = Value
-                end    
-            })
-    
-            Tabs.AimbotTab:AddToggle({
-                Name = "Visualise Range",
-                Default = false,
-                Callback = function(Value)
-                    FOVCircle.Visible = Value
-                end    
-            })
-    
-            Tabs.AimbotTab:AddDropdown({
-                Name = "Hitpart",
-                Default = "Head",
-                Options = {"Head", "Torso"},
-                Callback = function(Value)
-                    FeatureTable.Combat.Hitpart = Storage.Index[Value]
-                end    
-            })
-    
-            Tabs.AimbotTab:AddSlider({
-                Name = "Range",
-                Min = 0,
-                Max = 1000,
-                Default = 0,
-                Color = Color3.fromRGB(255,255,255),
-                Increment = 1,
-                Callback = function(Value)
-                    FOVCircle.Radius = Value
+                    FeatureTable.Combat.SilentAim.Enabled = Value
                 end
             })
+
+            Sections.Aimbot:AddToggle('VisualiseRange', {
+                Text = 'Visualise Range',
+                Default = false,
+                Tooltip = nil,
             
+                Callback = function(Value)
+                    FOVCircle.Visible = Value
+                end
+            }):AddColorPicker('VisualiseRangeColor', {
+                Default = Color3.fromRGB(255, 255, 255),
+                Title = 'Range Color',
+                Transparency = 0,
+            
+                Callback = function(Value)
+                    FOVCircle.Color = Value
+                end
+            })
+
+            Sections.Aimbot:AddToggle('DynamicRange', {
+                Text = 'Dynamic Range',
+                Default = false,
+                Tooltip = nil,
+            
+                Callback = function(Value)
+                    FeatureTable.Combat.SilentAim.DynamicFOV = Value
+                end
+            })
+            Sections.Aimbot:AddSlider('AimbotRange', {
+                Text = 'Range',
+                Default = 0,
+                Min = 0,
+                Max = 1000,
+                Rounding = 1,
+                Compact = false,
+
+                Callback = function(Value)
+                    FeatureTable.Combat.SilentAim.DummyRange = Value --// im not gonna use flags, but feel free to switch to it :D
+                end
+            })
+
+            Sections.Aimbot:AddDropdown('Aimpart', {
+                Values = { 'Head', 'Torso', 'Random' },
+                Default = 1,
+                Multi = false,
+            
+                Text = 'Aim Part',
+                Tooltip = nil,
+            
+                Callback = function(Value)
+                    if Storage.Index[Value] ~= nil then
+                        FeatureTable.Combat.Hitpart = Storage.Index[Value]
+                    else
+                        FeatureTable.Combat.Hitpart = "Random"
+                    end
+                end
+            })
+
+            --// Aimbot Settings
+
+            Sections.AimbotSettings:AddToggle('WallCheck', {
+                Text = 'Wall Check',
+                Default = false,
+                Tooltip = nil,
+            
+                Callback = function(Value)
+                    FeatureTable.Combat.WallCheck = Value
+                end
+            })
+
+            Sections.AimbotSettings:AddToggle('TeamCheck', {
+                Text = 'Team Check',
+                Default = false,
+                Tooltip = nil,
+            
+                Callback = function(Value)
+                    FeatureTable.Combat.TeamCheck = Value
+                end
+            })
+
+            Sections.AimbotSettings:AddSlider('Hitchance', {
+                Text = 'Hitchance',
+                Default = 100,
+                Min = 0,
+                Max = 100,
+                Rounding = 1,
+                Compact = false,
+            
+                Callback = function(Value)
+                    FeatureTable.Combat.SilentAim.Hitchance = Value
+                end
+            })
     
         end
 
         do --// Visuals Tab
 
-            Tabs.VisualTab:AddToggle({
-                Name = "Box",
+            Sections.Visuals:AddToggle('Box', {
+                Text = 'Box',
                 Default = false,
+                Tooltip = nil,
+            
                 Callback = function(Value)
                     FeatureTable.Visuals.Box.Enabled = Value
-                end    
-            })
-
-            Tabs.VisualTab:AddToggle({
-                Name = "Tracer",
-                Default = false,
-                Callback = function(Value)
-                    FeatureTable.Visuals.Tracers.Enabled = Value
-                end    
-            })
-
-            Tabs.VisualTab:AddToggle({
-                Name = "Chams",
-                Default = false,
-                Callback = function(Value)
-                    FeatureTable.Visuals.Chams.Enabled = Value
-                end    
-            })
-
-            Tabs.VisualTab:AddToggle({
-                Name = "Team Check",
-                Default = false,
-                Callback = function(Value)
-                    FeatureTable.Visuals.TeamCheck = Value
-                end    
-            })
-
-            Tabs.VisualTab:AddToggle({
-                Name = "Team Colors",
-                Default = false,
-                Callback = function(Value)
-                    FeatureTable.Visuals.UseTeamColor = Value
-                end    
-            })
-
-            Tabs.VisualTab:AddColorpicker({
-                Name = "Box Color",
+                end
+            }):AddColorPicker('BoxColor', {
                 Default = Color3.fromRGB(255, 255, 255),
+                Title = 'Box Color',
+                Transparency = 0,
+            
                 Callback = function(Value)
                     FeatureTable.Visuals.Box.Color = Value
-                end	  
+                end
             })
 
-            Tabs.VisualTab:AddColorpicker({
-                Name = "Tracer Color",
+            Sections.Visuals:AddToggle('Tracers', {
+                Text = 'Tracers',
+                Default = false,
+                Tooltip = nil,
+            
+                Callback = function(Value)
+                    FeatureTable.Visuals.Tracers.Enabled = Value
+                end
+            }):AddColorPicker('TracerColor', {
                 Default = Color3.fromRGB(255, 255, 255),
+                Title = 'Tracer Color',
+                Transparency = 0,
+            
                 Callback = function(Value)
                     FeatureTable.Visuals.Tracers.Color = Value
-                end	  
+                end
             })
 
-            Tabs.VisualTab:AddColorpicker({
-                Name = "Fill Color",
+            Sections.Visuals:AddToggle('Chams', {
+                Text = 'Chams',
+                Default = false,
+                Tooltip = nil,
+            
+                Callback = function(Value)
+                    FeatureTable.Visuals.Chams.Enabled = Value
+                end
+            }):AddColorPicker('FillColor', {
                 Default = Color3.fromRGB(255, 255, 255),
+                Title = 'Fill Color',
+                Transparency = 0,
+            
                 Callback = function(Value)
                     FeatureTable.Visuals.Chams.FillColor = Value
-                end	  
-            })
-
-            Tabs.VisualTab:AddColorpicker({
-                Name = "Outline Color",
+                end
+            }):AddColorPicker('OutlineColor', {
                 Default = Color3.fromRGB(255, 255, 255),
+                Title = 'Outline Color',
+                Transparency = 0,
+            
                 Callback = function(Value)
                     FeatureTable.Visuals.Chams.OutlineColor = Value
-                end	  
+                end
             })
 
-            Tabs.VisualTab:AddSlider({
-                Name = "Cham transparency",
+            --// Settings
+
+            Sections.VisualSettings:AddToggle('ChamsVisOnly', {
+                Text = 'Chams Visible Only',
+                Default = false,
+                Tooltip = nil,
+            
+                Callback = function(Value)
+                    FeatureTable.Visuals.Chams.VisibleOnly = Value
+                end
+            })
+
+            Sections.VisualSettings:AddToggle('TeamCheck', {
+                Text = 'Team Check',
+                Default = false,
+                Tooltip = nil,
+            
+                Callback = function(Value)
+                    FeatureTable.Visuals.TeamCheck = Value
+                end
+            })
+
+            Sections.VisualSettings:AddToggle('TeamColors', {
+                Text = 'Use Team Colors',
+                Default = false,
+                Tooltip = nil,
+            
+                Callback = function(Value)
+                    FeatureTable.Visuals.UseTeamColor = Value
+                end
+            })
+
+            Sections.VisualSettings:AddSlider('ChamFillTransparency', {
+                Text = 'Cham Fill Transparency',
+                Default = 0,
                 Min = 0,
                 Max = 1,
-                Default = 0,
-                Color = Color3.fromRGB(255,255,255),
-                Increment = 0.1,
+                Rounding = 1,
+                Compact = false,
+
                 Callback = function(Value)
-                    FeatureTable.Visuals.Chams.Transparency = Value
+                    FeatureTable.Visuals.Chams.FillTransparency = Value
+                end
+            })
+
+            Sections.VisualSettings:AddSlider('ChamOutlineTransparency', {
+                Text = 'Cham Outline Transparency',
+                Default = 0,
+                Min = 0,
+                Max = 1,
+                Rounding = 1,
+                Compact = false,
+
+                Callback = function(Value)
+                    FeatureTable.Visuals.Chams.OutlineTransparency = Value
+                end
+            })
+
+            Sections.VisualSettings:AddDropdown('TracerOrigin', {
+                Values = { 'Top', 'Middle', 'Bottom', 'Gun' },
+                Default = 2,
+                Multi = false,
+            
+                Text = 'Tracer Origin',
+                Tooltip = nil,
+            
+                Callback = function(Value)
+                    FeatureTable.Visuals.Tracers.Origin = Value
+                end
+            })
+
+            --// Lighting Section
+
+            Sections.Lighting:AddToggle('OverrideAmbient', {
+                Text = 'Override Ambient',
+                Default = false,
+                Tooltip = nil,
+            
+                Callback = function(Value)
+                    FeatureTable.Visuals.Lighting.OverrideAmbient.Enabled = Value
+                end
+            }):AddColorPicker('AmbientColor', {
+                Default = Color3.fromRGB(255, 255, 255),
+                Title = 'Ambient Color',
+                Transparency = 0,
+            
+                Callback = function(Value)
+                    if FeatureTable.Visuals.Lighting.OverrideAmbient.Enabled then
+                        FeatureTable.Visuals.Lighting.OverrideAmbient.Color = Value
+    
+                        do --// Properties
+                            
+                            Functions.Normal:SetAmbient("Ambient", Value)
+                            Functions.Normal:SetAmbient("OutdoorAmbient", Value)
+                            Functions.Normal:SetAmbient("ColorShift_Top", Value)
+                            Functions.Normal:SetAmbient("ColorShift_Bottom", Value)
+                            
+                        end
+                    end
+                end
+            })
+
+            --// Grenade Section
+
+            Sections.Grenade:AddToggle('Grenade', {
+                Text = 'Grenade ESP',
+                Default = false,
+                Tooltip = nil,
+            
+                Callback = function(Value)
+                    FeatureTable.Visuals.Grenade.GrenadeESP.Enabled = Value
+                end
+            }):AddColorPicker('GrenadeColor', {
+                Default = Color3.fromRGB(255, 255, 255),
+                Title = 'Grenade Color',
+                Transparency = 0,
+            
+                Callback = function(Value)
+                    FeatureTable.Visuals.Grenade.GrenadeESP.Color = Value
+                end
+            })
+
+            Sections.Grenade:AddToggle('TrailModifier', {
+                Text = 'Trail Modifier',
+                Default = false,
+                Tooltip = nil,
+            
+                Callback = function(Value)
+                    FeatureTable.Visuals.Grenade.TrailModifier.Enabled = Value
+                end
+            }):AddColorPicker('TrailColor', {
+                Default = Color3.fromRGB(255, 255, 255),
+                Title = 'Trail Color',
+                Transparency = 0,
+            
+                Callback = function(Value)
+                    FeatureTable.Visuals.Grenade.TrailModifier.Color = Value
+                end
+            })
+
+            Sections.Grenade:AddSlider('TrailLifetime', {
+                Text = 'Trail Lifetime',
+                Default = 0.55,
+                Min = 0,
+                Max = 10,
+                Rounding = 1,
+                Compact = false,
+            
+                Callback = function(Value)
+                    FeatureTable.Visuals.Grenade.TrailModifier.TrailLifetime = Value
                 end
             })
 
@@ -281,20 +512,85 @@ do --// Main
 
         do --// Misc Tab
 
-            Tabs.MiscTab:AddToggle({
-                Name = "Watermark",
+            Sections.Misc:AddToggle('Watermark', {
+                Text = 'Watermark',
                 Default = false,
+                Tooltip = nil,
+            
                 Callback = function(Value)
                     Watermark.Enabled = Value
-                end    
+                end
             })
 
-            Tabs.MiscTab:AddToggle({
-                Name = "BHop",
+            --// Player section
+
+            Sections.Player:AddToggle('Fly', {
+                Text = 'Fly',
                 Default = false,
+                Tooltip = nil,
+            
                 Callback = function(Value)
-                    FeatureTable.Misc.Bhop = Value
-                end    
+                    FeatureTable.Misc.Player.Fly.Enabled = Value
+                end
+            })
+
+            Sections.Player:AddToggle('Bhop', {
+                Text = 'Bhop',
+                Default = false,
+                Tooltip = nil,
+            
+                Callback = function(Value)
+                    FeatureTable.Misc.Player.Bhop = Value
+                end
+            })
+
+            Sections.Player:AddToggle('JumpModifier', {
+                Text = 'Override Jump Power',
+                Default = false,
+                Tooltip = nil,
+            
+                Callback = function(Value)
+                    FeatureTable.Misc.Player.JumpPowerModifier.Enabled = Value
+                end
+            })
+
+            Sections.Player:AddSlider('JumpPower', {
+                Text = 'Jump Power',
+                Default = 0,
+                Min = 0,
+                Max = 80,
+                Rounding = 1,
+                Compact = false,
+            
+                Callback = function(Value)
+                    FeatureTable.Misc.Player.JumpPowerModifier.Power = Value
+                end
+            })
+
+            Sections.Player:AddSlider('HipHeight', {
+                Text = 'Hip Height',
+                Default = 0,
+                Min = 0,
+                Max = 50,
+                Rounding = 1,
+                Compact = false,
+            
+                Callback = function(Value)
+                    FeatureTable.Misc.Player.HipHeight = Value
+                end
+            })
+
+            Sections.Player:AddSlider('FlySpeed', {
+                Text = 'Fly Speed',
+                Default = 0,
+                Min = 0,
+                Max = 50,
+                Rounding = 1,
+                Compact = false,
+            
+                Callback = function(Value)
+                    FeatureTable.Misc.Player.Fly.Speed = Value
+                end
             })
 
         end
@@ -306,60 +602,136 @@ do --// Main
         do --// Functions
 
             do --// Regular
-                function Functions.Normal:GetTeam(Player)
-                    if Player ~= nil and Player.Parent ~= nil and Player:FindFirstChildOfClass("Folder") then
-                        local Helmet = Player:FindFirstChildWhichIsA("Folder"):FindFirstChildOfClass("MeshPart")
-                        if Helmet then
-                            if Helmet.BrickColor == BrickColor.new("Black") then
-                                return game.Teams.Phantoms
-                            else
+
+                do --// Lighting
+
+                    function Functions.Normal:SetAmbient(Property, Value)
+                        if FeatureTable.Visuals.Lighting.OverrideAmbient.Enabled then
+                            Lighting[Property] = Value
+                        end
+                    end
+                    
+                end
+
+                do --// Players
+
+                    function Functions.Normal:GetTeam(Player)
+                        if Player ~= nil and Player.Parent ~= nil and Player:FindFirstChildOfClass("Folder") then
+                            local Helmet = Player:FindFirstChildWhichIsA("Folder"):FindFirstChildOfClass("MeshPart")
+                            if Helmet then
+                                if Helmet.BrickColor == BrickColor.new("Black") then
+                                    return game.Teams.Phantoms
+                                end
                                 return game.Teams.Ghosts
                             end
                         end
                     end
-                end
-        
-                function Functions.Normal:GetPlayers()
-                    local PlayerList = {}
-                    for i,Teams in Players:GetChildren() do
-                        for i,Players in Teams:GetChildren() do
-                            table.insert(PlayerList, Players)
+
+                    function Functions.Normal:GetPlayers()
+                        local PlayerList = {}
+                        for i,Teams in Players:GetChildren() do
+                            for i,Players in Teams:GetChildren() do
+                                table.insert(PlayerList, Players)
+                            end
                         end
+                        return PlayerList
                     end
-                    return PlayerList
+                    
                 end
-        
-                function Functions.Normal:Measure(Origin, End)
-                    return (Origin - End).Magnitude
+                
+                do --// LocalPlayer
+                    function Functions.Normal:GetGun()
+                        for i,Viewmodel in Camera:GetChildren() do
+                            if Viewmodel:IsA("Model") and not Viewmodel.Name:find("Arm") then
+                                return Viewmodel
+                            end
+                        end
+                        return nil
+                    end
+                end
+
+                do --// Math
+
+                    function Functions.Normal:Measure(Origin, End)
+                        return (Origin - End).Magnitude
+                    end
+
+                    function Functions.Normal:GetLength(Table) --// This isnt even math btw, but its not related to any of the other sections so whatever lol
+                        local Int = 0
+                        for WhatTheSigma in Table do
+                            Int += 1
+                        end
+                        return Int
+                    end
+
                 end
     
-                function Functions.Normal:GetGun()
-                    for i,Viewmodel in Camera:GetChildren() do
-                        if Viewmodel:IsA("Model") and not Viewmodel.Name:find("Arm") then
-                            return Viewmodel
-                        end
-                    end
-                    return nil
-                end
             end
     
             do --// Aimbot
                 
                 function Functions.Normal:getClosestPlayer()
                     local Player = nil
+                    local Hitpart = nil
                     local Distance = math.huge
-                    for i,Players in Functions.Normal:GetPlayers() do
+                
+                    for i, Players in Functions.Normal:GetPlayers() do
                         if Players ~= nil then
-                            local Hitpart = Players:GetChildren()[FeatureTable.Combat.Hitpart]
-                            local Screen = Camera:WorldToViewportPoint(Hitpart.Position)
-                            local MeasureDistance = (Vector2.new(Mouse.X, Mouse.Y) - Vector2.new(Screen.X, Screen.Y)).Magnitude
-                            if MeasureDistance < Distance and MeasureDistance <= FOVCircle.Radius*1.25 then --// not how  you actually get an accurate circle but i dont care lol...
+                            local Children = Players:GetChildren()
+
+                            local Torso = Children[6]
+
+                            local Screen = Camera:WorldToViewportPoint(Torso.Position)
+                            local MeasureDistance = (Vector2.new(Storage.Other.ViewportSize.X / 2, Storage.Other.ViewportSize.Y / 2) - Vector2.new(Screen.X, Screen.Y)).Magnitude
+                
+                            local PlayerIsVisible = (not FeatureTable.Combat.WallCheck) or Functions.Normal:PlayerVisible(Players, Camera.CFrame.Position, Torso.Position, {Misc, Ignore, Players:FindFirstChildOfClass("Folder")})
+                
+                            if MeasureDistance < Distance and MeasureDistance <= FOVCircle.Radius * 1.25 and PlayerIsVisible then
                                 Player = Players
                                 Distance = MeasureDistance
+                
+                                if tostring(FeatureTable.Combat.Hitpart):find("Random") then
+                                    local Keys = {}
+                
+                                    do --// WhatTheSigma
+                                        for WhatTheSigma in Storage.Index do
+                                            table.insert(Keys, WhatTheSigma)
+                                        end
+                                    end
+                
+                                    local Index = math.random(1, Functions.Normal:GetLength(Keys))
+                                    local Rndm = Keys[Index]
+                
+                                    Hitpart = Children[Storage.Index[Rndm]]
+                                else
+                                    Hitpart = Children[FeatureTable.Combat.Hitpart]
+                                end
                             end
                         end
                     end
-                    return Player
+                
+                    return {Closest = Player, Hitpart = Hitpart}
+                end
+
+                function Functions.Normal:PlayerVisible(Player, Origin, End, Ignorelist)
+
+                    local Params = RaycastParams.new()
+                    do --// Param Properties
+
+                        Params.FilterDescendantsInstances = Ignorelist
+                        Params.FilterType = Enum.RaycastFilterType.Exclude
+                        Params.IgnoreWater = true
+                        
+                    end
+
+                    local CastRay = workspace:Raycast(Origin, End - Origin, Params)
+                    if CastRay and CastRay.Instance then
+                        if CastRay.Instance:IsDescendantOf(Player) then
+                            return true
+                        end
+                    end
+                    return false
+        
                 end
     
             end
@@ -424,24 +796,43 @@ do --// Main
     
                         do --// Aimbot
     
-                            if FeatureTable.Combat.SilentAim then
-                                local Target = Functions.Normal:getClosestPlayer()
+                            if FeatureTable.Combat.SilentAim.Enabled then
+
+                                local Enemy = Storage.Other.ClosestPlayer
+                                local Target = Enemy.Closest
                                 if Target ~= nil and (FeatureTable.Combat.TeamCheck and Functions.Normal:GetTeam(Target) ~= game.Players.LocalPlayer.Team or not FeatureTable.Combat.TeamCheck) then
 
-                                    local Hitpart = Target:GetChildren()[FeatureTable.Combat.Hitpart]
+                                    local Hitpart = Enemy.Hitpart
                                     local Gun = Functions.Normal:GetGun()
-                            
+
                                     if Hitpart and Gun then
-                                        for i, Stuff in pairs(Gun:GetChildren()) do
+                                        for i, GunParts in Gun:GetChildren() do
                                             pcall(function()
-                                                local Joints = Stuff:GetJoints()
-                                                if Stuff.Name:find("SightMark") or Stuff.Name:find("FlameSUP") or Stuff.Name:find("Flame") then
-                                                    Joints[1].C0 = Joints[1].Part0.CFrame:ToObjectSpace(CFrame.lookAt(Joints[1].Part1.Position, Hitpart.Position))
+                                                local Joints = GunParts:GetJoints()
+                                                if GunParts.Name:find("SightMark") or GunParts.Name:find("FlameSUP") or GunParts.Name:find("Flame") then
+                                                    local Vector = Vector3New()
+                                    
+                                                    do --// Hitchance
+
+                                                        local Chance = FeatureTable.Combat.SilentAim.Hitchance
+                                                        if Chance < 100 then --// Pretty awful but it works
+                                                            local MissChance = (100 - Chance) / 100
+                                                            local x = math.random() * 3 - 1
+                                                            local y = math.random() * 3 - 1
+                                                            local z = math.random() * 3 - 1 
+                                                            Vector = Vector3New(x, y, z) * MissChance
+                                                        end
+
+                                                    end
+                                    
+                                                    Joints[1].C0 = Joints[1].Part0.CFrame:ToObjectSpace(CFrame.lookAt(Joints[1].Part1.Position, (Hitpart.Position + Vector)))
                                                 end
                                             end)
                                         end
                                     end
+
                                 end
+
                             end
                             
     
@@ -479,7 +870,7 @@ do --// Main
                                                 Box.Position = Vector2.new(PosX, PosY)
                                                 Box.Size = Vector2.new(2 * Scale, 3 * Scale)
                                                 Box.Visible = true
-                                                
+
                                                 if FeatureTable.Visuals.UseTeamColor then --// 😭
                                                     if tostring(TeamColor) == "Bright blue" then
                                                         Box.Color = Color3.fromRGB(0, 162, 255)
@@ -528,10 +919,34 @@ do --// Main
                     
                                             if OnScreen and FeatureTable.Visuals.TeamCheck and tostring(Team) ~= game.Players.LocalPlayer.Team.Name or not FeatureTable.Visuals.TeamCheck then
                                                 
-                                                Tracer.From = Vector2.new(Storage.Other.ViewportSize.X/2,Storage.Other.ViewportSize.Y/2) --// Set origin to center of screen cuz screen size divided by 2 is center
-                                                Tracer.To = Vector2.new(Position.X, Position.Y)
-                                                
-                                                if FeatureTable.Visuals.UseTeamColor then --// emm
+                                                local Origin = FeatureTable.Visuals.Tracers.Origin
+                                                local Value
+                                                if Origin ~= "Gun" then
+
+                                                    if Origin == "Top" then
+                                                        Value = 0 
+                                                    elseif Origin == "Middle" then
+                                                        Value = Storage.Other.ViewportSize.Y / 2
+                                                    elseif Origin == "Bottom" then
+                                                        Value = Storage.Other.ViewportSize.Y
+                                                    end
+
+                                                    Tracer.From = Vector2.new(Storage.Other.ViewportSize.X / 2, Value)
+                                                    Tracer.To = Vector2.new(Position.X, Position.Y)
+                                                else
+
+                                                    local Gun = Functions.Normal:GetGun()
+                                                    if Gun ~= nil and Gun:FindFirstChild("Flame") then
+                                                        local TipPosition = Camera:WorldToViewportPoint(Gun["Flame"].Position) or Camera:WorldToViewportPoint(Gun["FlameSUP"].Position)
+                                                        Tracer.From = Vector2.new(TipPosition.X, TipPosition.Y)
+                                                        Tracer.To = Vector2.new(Position.X, Position.Y)
+                                                    else
+                                                        Functions.ESP:ClearTable({Tracer}, Storage.ESP.Tracers, i)
+                                                    end
+
+                                                end
+
+                                                if FeatureTable.Visuals.UseTeamColor then
                                                     if tostring(TeamColor) == "Bright blue" then
                                                         Tracer.Color = Color3.fromRGB(0, 162, 255)
                                                     elseif tostring(TeamColor) == "Bright orange" then
@@ -566,9 +981,10 @@ do --// Main
 
                             for i, Player in Functions.Normal:GetPlayers() do
                                 if Player ~= nil then
-                            
+                                    
                                     local Highlight = Player:FindFirstChildOfClass("Highlight")
                                     local Team = Functions.Normal:GetTeam(Player)
+                                    local TeamColor = Team.TeamColor
                             
                                     if FeatureTable.Visuals.Chams.Enabled and (FeatureTable.Visuals.TeamCheck and tostring(Team) ~= game.Players.LocalPlayer.Team.Name or not FeatureTable.Visuals.TeamCheck) then
                                         
@@ -580,14 +996,29 @@ do --// Main
                                         Highlight.Adornee = Player
                                         Highlight.FillColor = FeatureTable.Visuals.Chams.FillColor
                                         Highlight.OutlineColor = FeatureTable.Visuals.Chams.OutlineColor
-                                        Highlight.FillTransparency = FeatureTable.Visuals.Chams.Transparency
-                                        Highlight.OutlineTransparency = FeatureTable.Visuals.Chams.Transparency
+                                        Highlight.FillTransparency = FeatureTable.Visuals.Chams.FillTransparency
+                                        Highlight.OutlineTransparency = FeatureTable.Visuals.Chams.OutlineTransparency
                                         Highlight.DepthMode = FeatureTable.Visuals.Chams.VisibleOnly and Enum.HighlightDepthMode.Occluded or Enum.HighlightDepthMode.AlwaysOnTop
+
+                                        if FeatureTable.Visuals.UseTeamColor then --// 😭
+                                            if tostring(TeamColor) == "Bright blue" then
+                                                Highlight.FillColor = Color3.fromRGB(0, 162, 255)
+                                                Highlight.OutlineColor = Color3.fromRGB(0, 162, 255)
+                                            elseif tostring(TeamColor) == "Bright orange" then
+                                                Highlight.FillColor = Color3.fromRGB(255, 162, 0)
+                                                Highlight.OutlineColor = Color3.fromRGB(255, 162, 0)
+                                            end
+                                        else
+                                            Highlight.FillColor = FeatureTable.Visuals.Chams.FillColor
+                                            Highlight.OutlineColor = FeatureTable.Visuals.Chams.OutlineColor
+                                        end
                   
                                     else
+
                                         if Highlight then
                                             Highlight:Destroy()
                                         end
+
                                     end
 									
                                 end
@@ -596,27 +1027,88 @@ do --// Main
                         end
     
                     end
-    
+
                     do --// Misc
-    
-                        do --// Bhop
 
-                            if FeatureTable.Misc.Bhop and UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-                                local LocalPlayer = workspace.Ignore:FindFirstChild("RefPlayer")
-                                if LocalPlayer then
-                                    local Humanoid = LocalPlayer:FindFirstChildOfClass("Humanoid")
+                        do --// Player
+
+                            local LocalPlayer = Ignore:FindFirstChild("RefPlayer")
+                            if LocalPlayer then
+                                local Humanoid = LocalPlayer:FindFirstChildOfClass("Humanoid")
+
+                                do --// Player Modifications
+
                                     if Humanoid then
-                                        Humanoid.Jump = true
-                                    end
-                                end
-                            end
+    
+                                        if FeatureTable.Misc.Player.JumpPowerModifier.Enabled then
+                                            Humanoid.JumpPower = FeatureTable.Misc.Player.JumpPowerModifier.Power
+                                        end
+                                        if FeatureTable.Misc.Player.Fly.Enabled then
 
+                                            local Direction = Vector3New()
+
+                                            if LocalPlayer then
+
+                                                local LookVector = Camera.CFrame.LookVector * Vector3New(1, 0, 1)
+                                                local Directions = { --// Very optimized real!
+                                                    [Enum.KeyCode.W] = LookVector,
+                                                    [Enum.KeyCode.S] = -LookVector,
+                                                    [Enum.KeyCode.D] = Vector3New(-LookVector.Z, 0, LookVector.X),
+                                                    [Enum.KeyCode.A] = Vector3New(LookVector.Z, 0, -LookVector.X),
+                                                    [Enum.KeyCode.Space] = Vector3New(0, 5 * 5, 0),
+                                                    [Enum.KeyCode.LeftControl] = Vector3New(0, -5 * 5, 0)
+                                                }
+                                                
+                                                for Key, Dir in Directions do
+                                                    if UserInputService:IsKeyDown(Key) then
+                                                        Direction = Direction + Dir
+                                                    end
+                                                end
+                                                
+                                                if Direction.Magnitude > 0 then
+                                                    Direction = Direction.Unit
+                                                    LocalPlayer.HumanoidRootPart.Velocity = Direction * FeatureTable.Misc.Player.Fly.Speed
+                                                    LocalPlayer.HumanoidRootPart.Anchored = false
+                                                else
+                                                    LocalPlayer.HumanoidRootPart.Velocity = Vector3New()
+                                                    LocalPlayer.HumanoidRootPart.Anchored = true
+                                                end
+
+                                            end
+
+                                        end
+                                        if UserInputService:IsKeyDown(Enum.KeyCode.Space) and FeatureTable.Misc.Player.Bhop then
+                                            Humanoid.Jump = true
+                                        end
+                                        Humanoid.HipHeight = FeatureTable.Misc.Player.HipHeight
+                                    
+                                    end
+                                    
+                                end
+
+                            end
+                            
                         end
                         
                     end
 
                     do --// Extra
-                        FOVCircle.Position = Vector2.new(Storage.Other.ViewportSize.X/2, Storage.Other.ViewportSize.Y/2)
+
+                        Storage.Other.ClosestPlayer = Functions.Normal:getClosestPlayer()
+                        
+                        do --// FOV Circle
+
+                            local Dynamic = FeatureTable.Combat.SilentAim.DummyRange / math.tan(math.rad(Camera.FieldOfView / 2))
+                            FOVCircle.Position = Vector2.new(Storage.Other.ViewportSize.X/2, Storage.Other.ViewportSize.Y/2)
+
+                            if FeatureTable.Combat.SilentAim.DynamicFOV then
+                                FOVCircle.Radius = Dynamic
+                            else
+                                FOVCircle.Radius = FeatureTable.Combat.SilentAim.DummyRange
+                            end
+                            
+                        end
+
                     end
     
                 end
@@ -629,6 +1121,59 @@ do --// Main
             Camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()
                 Storage.Other.ViewportSize = Camera.ViewportSize
             end)
+
+            do --// Lighting (I love this part)
+
+                Lighting:GetPropertyChangedSignal("Ambient"):Connect(function()
+                    Functions.Normal:SetAmbient("Ambient", FeatureTable.Visuals.Lighting.OverrideAmbient.Color)
+                end)
+
+                Lighting:GetPropertyChangedSignal("OutdoorAmbient"):Connect(function()
+                    Functions.Normal:SetAmbient("OutdoorAmbient", FeatureTable.Visuals.Lighting.OverrideAmbient.Color)
+                end)
+
+                Lighting:GetPropertyChangedSignal("ColorShift_Top"):Connect(function()
+                    Functions.Normal:SetAmbient("ColorShift_Top", FeatureTable.Visuals.Lighting.OverrideAmbient.Color)
+                end)
+
+                Lighting:GetPropertyChangedSignal("ColorShift_Bottom"):Connect(function()
+                    Functions.Normal:SetAmbient("ColorShift_Bottom", FeatureTable.Visuals.Lighting.OverrideAmbient.Color)
+                end)
+                
+            end
+
+            Misc.ChildAdded:Connect(function(Child)
+                if tostring(Child.Name):find("Trigger") then 
+                    if FeatureTable.Visuals.Grenade.GrenadeESP.Enabled then
+                        local Billboard = Instance.new("BillboardGui", Child)
+                        local Frame = Instance.new("Frame", Billboard)
+                        local UICorner = Instance.new("UICorner", Frame)
+                        
+                        do --// Properties
+                            do --// BillboardGui
+                                Billboard.Enabled = true
+                                Billboard.AlwaysOnTop = true
+                                Billboard.Size = UDim2.new(1, 0, 1, 0)
+                                Billboard.Adornee = Child
+                            end
+                            do --// Frame
+                                Frame.Size = UDim2.new(1, 0, 1, 0)
+                                Frame.BackgroundTransparency = FeatureTable.Visuals.Grenade.GrenadeESP.Transparency
+                                Frame.BackgroundColor3 = FeatureTable.Visuals.Grenade.GrenadeESP.Color
+                            end
+                            do --// UICorner
+                                UICorner.CornerRadius = UDim.new(0, 50)
+                            end
+                        end
+                    end
+                    if FeatureTable.Visuals.Grenade.TrailModifier.Enabled then
+                        local Trail = Child:WaitForChild("Trail")
+                        Trail.Lifetime = FeatureTable.Visuals.Grenade.TrailModifier.TrailLifetime
+                        Trail.Color = ColorSequence.new(FeatureTable.Visuals.Grenade.TrailModifier.Color)
+                    end
+                end
+            end)
+            
             
         end
     
@@ -638,4 +1183,20 @@ do --// Main
     
 end
 
-OrionLib:Init()
+Library:OnUnload(function()
+    Library.Unloaded = true
+end)
+
+local MenuGroup = Tabs['Settings']:AddLeftGroupbox('Menu')
+MenuGroup:AddButton('Unload', function() Library:Unload() end)
+
+ThemeManager:SetLibrary(Library)
+SaveManager:SetLibrary(Library)
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({ 'MenuKeybind' })
+ThemeManager:SetFolder('GuiHack')
+SaveManager:SetFolder('GuiHack/PhantomForces')
+
+SaveManager:BuildConfigSection(Tabs['Settings'])
+ThemeManager:ApplyToTab(Tabs['Settings'])
+SaveManager:LoadAutoloadConfig()
