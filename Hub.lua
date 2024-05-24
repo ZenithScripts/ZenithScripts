@@ -21,7 +21,14 @@ local Tab3 = Window:MakeTab({
 })
 
 Tab1:AddButton({
-    Name = "Hub PF2",
+    Name = "Hub PF2 Antigo o mior",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/dysyfsd/My/main/Hub2.lua"))()
+    end    
+})
+
+Tab1:AddButton({
+    Name = "Hub PF2 Novo",
     Callback = function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/dysyfsd/My/main/Roludao.lua"))()
     end    
