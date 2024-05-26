@@ -48,6 +48,13 @@ Tab2:AddButton({
 })
 
 Tab2:AddButton({
+    Name = "Cabeção",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/dysyfsd/My/main/CabecaoAR2"))()
+    end    
+})
+
+Tab2:AddButton({
     Name = "FullBight (L Key)",
     Callback = function()
         loadstring(game:HttpGet("https://pastebin.com/raw/SRAgYGRz"))()
