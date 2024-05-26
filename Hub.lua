@@ -20,6 +20,12 @@ local Tab3 = Window:MakeTab({
     PremiumOnly = false
 })
 
+local Tab4 = Window:MakeTab({
+    Name = "Arsenal",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
 Tab1:AddButton({
     Name = "Hub PF2 Antigo o mior",
     Callback = function()
@@ -52,6 +58,13 @@ Tab3:AddButton({
     Name = "Hub CB:RO",
     Callback = function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/fliskScript/jaran.vip/main/free.lua"))()
+    end    
+})
+
+Tab4:AddButton({
+    Name = "HUB ARSENAL",
+    Callback = function()
+        loadstring(game:HttpGet(('https://raw.githubusercontent.com/wuhaz/arsenal/main/main.lua')))() 
     end    
 })
 
