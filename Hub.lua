@@ -1,4 +1,4 @@
-local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
+2222local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
 
 local Window = OrionLib:MakeWindow({Name = "", HidePremium = false, SaveConfig = true, ConfigFolder = "MyHubConfig"})
 
@@ -44,13 +44,6 @@ Tab2:AddButton({
     Name = "ESP AR2",
     Callback = function()
         loadstring(game:HttpGet("https://pastebin.com/raw/YbLrHQDB"))()
-    end    
-})
-
-Tab2:AddButton({
-    Name = "Cabeção",
-    Callback = function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/dysyfsd/My/main/CabecaoAR2"))()
     end    
 })
 
