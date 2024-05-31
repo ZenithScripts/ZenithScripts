@@ -48,7 +48,7 @@ Tab2:AddButton({
 })
 
 Tab2:AddButton({
-    Name = "FullBight (L Key)",
+    Name = "FullBright (L Key)",
     Callback = function()
         loadstring(game:HttpGet("https://pastebin.com/raw/SRAgYGRz"))()
     end    
