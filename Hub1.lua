@@ -75,4 +75,17 @@ Tab4:AddButton({
     end    
 })
 
+local MiscTab = Window:MakeTab({
+    Name = "Misc",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+MiscTab:AddButton({
+    Name = "Close Hub",
+    Callback = function()
+        OrionLib:Destroy()
+    end    
+})
+
 OrionLib:Init()
