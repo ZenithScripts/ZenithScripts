@@ -1,6 +1,6 @@
 local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
 
-local Window = OrionLib:MakeWindow({Name = "", HidePremium = false, SaveConfig = true, ConfigFolder = "MyHubConfig"})
+local Window = OrionLib:MakeWindow({Name = "", HidePremium = true, SaveConfig = true, ConfigFolder = "MyHubConfig"})
 
 local Tab1 = Window:MakeTab({
     Name = "Phantom Forces",
