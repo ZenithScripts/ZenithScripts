@@ -1,0 +1,27 @@
+--// Defined
+
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/Library.lua"))()
+local GameId = game.GameId
+
+--// Tables
+
+local Games = {
+    { name = "Bad Business", gameid = 1168263273, link = "https://pastebin.com/raw/c1pTdE0m" },
+    { name = "Phantom Forces", gameid = 113491250, link = "https://pastebin.com/raw/vuvyBMDT" },
+    { name = "Apocalypse Rising 2", gameid = 863266079, link = "https://raw.githubusercontent.com/ZenithScripts/.a./main/Apocalypse%20Rising%202" },
+    { name = "Counter Blox", gameid = 301549746, link = "https://raw.githubusercontent.com/fliskScript/jaran.vip/main/free.lua" },
+    { name = "Arsenal", gameid = 286090429, link = "https://raw.githubusercontent.com/wuhaz/arsenal/main/main.lua" },
+}
+
+function Fetch(URL)
+    return game:HttpGet(tostring(URL))
+end
+
+--// Rest
+
+for i, Supported in Games do
+    if Supported.gameid == GameId then
+        Library:Notify("Zenith Hub Detectou que Você esta em " .. Supported.name .. ",Carregando Script...", 5)
+        loadstring(Fetch(Supported.link))()
+    end
+end
